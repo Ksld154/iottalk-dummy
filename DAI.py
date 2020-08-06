@@ -32,14 +32,15 @@ rssi.close()
 while True:
     try:
         # IDF_data = random.uniform(1, 10)
+        push_result = True
         d_list = d_rows[d_cnter]
-        DAN.push ('rfidreader_distance_i', [len(d_list), d_list[0] if len(d_list)>=1 else 0,  d_list[1] if len(d_list)>=2 else 0,  d_list[2] if len(d_list)>=3 else 0,  d_list[3] if len(d_list)>=4 else 0,  d_list[4] if len(d_list)>=5 else 0]) #Push data to an input device feature "Dummy_Sensor"
+        push_result = push_result and DAN.push ('rfidreader_distance_i', [len(d_list), d_list[0] if len(d_list)>=1 else 0,  d_list[1] if len(d_list)>=2 else 0,  d_list[2] if len(d_list)>=3 else 0,  d_list[3] if len(d_list)>=4 else 0,  d_list[4] if len(d_list)>=5 else 0]) #Push data to an input device feature "Dummy_Sensor"
         r_list = r_rows[r_cnter]
-        DAN.push ('rfidreader_rssi_i', [len(r_list), r_list[0] if len(r_list)>=1 else 0,  r_list[1] if len(r_list)>=2 else 0,  r_list[2] if len(r_list)>=3 else 0,  r_list[3] if len(r_list)>=4 else 0,  r_list[4] if len(r_list)>=5 else 0])
+        push_result = push_result and DAN.push ('rfidreader_rssi_i', [len(r_list), r_list[0] if len(r_list)>=1 else 0,  r_list[1] if len(r_list)>=2 else 0,  r_list[2] if len(r_list)>=3 else 0,  r_list[3] if len(r_list)>=4 else 0,  r_list[4] if len(r_list)>=5 else 0])
 
-        if d_cnter < len(d_rows)-1:
+        if d_cnter < len(d_rows)-1 and push_result != None:
             d_cnter+=1
-        if r_cnter < len(r_rows)-1:
+        if r_cnter < len(r_rows)-1 and push_result != None:
             r_cnter+=1
         #==================================
 
