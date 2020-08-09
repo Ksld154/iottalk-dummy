@@ -22,8 +22,9 @@ while True:
     try:
 
         if filename_pulled == False:
-            ODF_data = DAN.pull('rfidreader_filename_i')
+            ODF_data = DAN.pull('rfidreader_filename_o')
             if ODF_data != None: 
+                print('file')
                 filename_pulled = True
                 csvFileName = ODF_data[0]
 

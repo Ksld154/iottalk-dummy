@@ -24,9 +24,11 @@ while True:
     try:        
        
         if filename_pushed == False:
-            DAN.push('rfidreader_filename_i', [CsvFilePath])
-            filename_pushed = True
-            continue
+            push_res = DAN.push('rfidreader_filename_i', [CsvFilePath])
+            if push_res == True:
+                print(CsvFilePath)
+                filename_pushed = True
+                continue
 
 
         print(d_cnter)
