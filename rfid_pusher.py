@@ -1,37 +1,36 @@
 import time, random, requests, csv
 import DAN
 
-CsvFilePath = './GC/reader_data/ML_realdata/'
-
 ServerURL = 'http://demo.iottalk.tw:9999'      #with non-secure connection
 Reg_addr = 'CD1234D49' + '100'
 
 DAN.profile['dm_name']='rfidreader'
-DAN.profile['df_list']=['rfidreader_distance_i', 'rfidreader_phase_i', 'rfidreader_rssi_i', 'rfidreader_distance_o', 'rfidreader_phase_o', 'rfidreader_rssi_o']
-#DAN.profile['d_name']= 'Assign a Device Name' 
-
+DAN.profile['df_list']=['rfidreader_distance_i', 'rfidreader_phase_i', 'rfidreader_rssi_i', 'rfidreader_filename_i', 'rfidreader_distance_o', 'rfidreader_phase_o', 'rfidreader_rssi_o', 'rfidreader_filename_o']
 DAN.device_registration_with_retry(ServerURL, Reg_addr)
-# DAN.deregister()  #if you want to deregister this device, uncomment this line
-# exit()            #if you want to deregister this device, uncomment this line
 
-distance = open(CsvFilePath+'gc_dis_ang_ori/distance_circle_0_50_0_1_1.csv', newline='')
+
+CsvFileRoot = './GC/reader_data/ML_realdata/'
+CsvFilePath = 'gc_dis_ang_ori/distance_circle_0_50_0_1_1.csv'
+distance = open(CsvFileRoot+CsvFilePath, newline='')
 d_rows = list(csv.reader(distance))
 d_cnter = 0
 distance.close()
 
-rssi = open(CsvFilePath+'gc_dis_ang_ori/rssi_circle_0_50_0_1_1.csv', newline='')
-r_rows = list(csv.reader(rssi))
-r_cnter = 0
-rssi.close()
+def parseCsvFileName(csvFile):
+    pass
 
-# phase = open(CsvFilePath+'gc_dis_ang_ori/rssi_circle_0_50_0_1_1.csv', newline='')
-# p_rows = csv.reader(phase)
-# phase.close()
-
+filename_pushed = False
 while True:
     try:        
+       
+        if filename_pushed == False:
+            DAN.push('rfidreader_filename_i', [CsvFilePath])
+            filename_pushed = True
+            continue
+
+
         print(d_cnter)
-        if d_cnter == len(d_rows)-1 or r_cnter >= len(r_rows):
+        if d_cnter == len(d_rows)-1:
             d_list = d_rows[0]
             DAN.push('rfidreader_distance_i', [1, 0, 0, 0, 0, 0])
             break
@@ -50,21 +49,6 @@ while True:
        
        
         #==================================
-
-        # ODF_data = DAN.pull('rfidreader_distance_o')#Pull data from an output device feature "Dummy_Control"
-        # if ODF_data != None:
-        #     print("-----")
-        #     print("d:")
-        #     # print(ODF_data)
-        #     print(ODF_data[0])
-        #     print("-----")
-
-        # ODF_data = DAN.pull('rfidreader_rssi_o')#Pull data from an output device feature "Dummy_Control"
-        # if ODF_data != None:
-        #     print("-----")
-        #     print("r:")
-        #     print(ODF_data[0])
-        #     print("-----")
 
     except Exception as e:
         print(e)
