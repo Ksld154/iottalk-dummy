@@ -1,4 +1,4 @@
-import time, random, requests, csv
+import time, random, csv, os
 import DAN
 
 ServerURL = 'http://demo.iottalk.tw:9999'      #with non-secure connection
@@ -10,57 +10,107 @@ DAN.profile['d_name'] = str( random.randint(100,999 ) ) +'_pusher_'+ DAN.profile
 DAN.device_registration_with_retry(ServerURL, Reg_addr)
 
 
-CsvFileRoot = './GC/reader_data/ML_realdata/gc_dis_ang_ori/'
-CsvFilePath = 'distance_circle_0_50_0_1_1.csv'
-distance = open(CsvFileRoot+CsvFilePath, newline='')
-d_rows = list(csv.reader(distance))
-d_cnter = 0
-distance.close()
+CsvFileRoot = os.path.join(os.getcwd() ,'GC/reader_data/ML_realdata/gc_dis_ang_ori/')
 
-def parseCsvFileName(csvFile):
+
+def csvFileScanner():
+    global CsvFileRoot
+    files = os.listdir(CsvFileRoot)
+    csvFiles = []
+    
+    for f in files:
+        if f.endswith('.csv'):
+            csvFiles.append(f)
+
+    return csvFiles
+
+def pushSingleRow(featureName, idx, total_rows, data_entry):
     pass
 
-filename_pushed = False
-while True:
-    try:        
-       
-        if filename_pushed == False:
-            push_res = DAN.push('rfidreader_filename_i', [CsvFilePath])
-            if push_res == True:
-                print(CsvFilePath)
-                filename_pushed = True
+
+def iottalkPusher(csvFile):
+    global CsvFileRoot 
+    
+    # CsvFilePath = 'distance_circle_0_50_0_1_1.csv'
+    csvData = open(CsvFileRoot+csvFile, newline='')
+    data_rows = list(csv.reader(csvData))
+    total_rows = len(data_rows)
+    
+    idx = 0
+    csvData.close()
+
+    filename_pushed = False
+    while True:
+        try:        
+        
+            if filename_pushed == False:
+                push_res = DAN.push('rfidreader_filename_i', [csvFile])
+                if push_res == True:
+                    print(csvFile)
+                    filename_pushed = True
                 continue
 
+            if 'distance' in csvFile:
+                if idx == total_rows:
+                    DAN.push('rfidreader_distance_i', [1, 0, 0, 0, 0, 0])
+                    break
 
-        print(d_cnter)
-        if d_cnter == len(d_rows)-1:
-            d_list = d_rows[0]
-            DAN.push('rfidreader_distance_i', [1, 0, 0, 0, 0, 0])
-            break
+                push_result = True
+                data_entry = data_rows[idx]
+                print(idx)
+                print(data_entry)
+                push_result = push_result and DAN.push('rfidreader_distance_i', [len(data_entry), data_entry[0] if len(data_entry)>=1 else 0,  data_entry[1] if len(data_entry)>=2 else 0,  data_entry[2] if len(data_entry)>=3 else 0,  data_entry[3] if len(data_entry)>=4 else 0,  data_entry[4] if len(data_entry)>=5 else 0]) #Push data to an input device feature "Dummy_Sensor"         
+                if idx < total_rows and push_result != None:
+                    idx+=1
 
-        push_result = True
-        d_list = d_rows[d_cnter]
-        print(d_list)
-        push_result = push_result and DAN.push('rfidreader_distance_i', [len(d_list), d_list[0] if len(d_list)>=1 else 0,  d_list[1] if len(d_list)>=2 else 0,  d_list[2] if len(d_list)>=3 else 0,  d_list[3] if len(d_list)>=4 else 0,  d_list[4] if len(d_list)>=5 else 0]) #Push data to an input device feature "Dummy_Sensor"         
-        if d_cnter < len(d_rows)-1 and push_result != None:
-            d_cnter+=1
-       
-        # r_list = r_rows[r_cnter]
-        # push_result = push_result and DAN.push('rfidreader_rssi_i', [len(r_list), r_list[0] if len(r_list)>=1 else 0,  r_list[1] if len(r_list)>=2 else 0,  r_list[2] if len(r_list)>=3 else 0,  r_list[3] if len(r_list)>=4 else 0,  r_list[4] if len(r_list)>=5 else 0])
-        # if r_cnter < len(r_rows)-1 and push_result != None:
-        #     r_cnter+=1
-       
-       
-        #==================================
+            elif 'rssi' in csvFile:
+                if idx == total_rows:
+                    DAN.push('rfidreader_rssi_i', [1, 0, 0, 0, 0, 0])
+                    break
+                
+                push_result = True
+                data_entry = data_rows[idx]
+                print(idx)
+                print(data_entry)
+                push_result = push_result and DAN.push('rfidreader_rssi_i', [len(data_entry), data_entry[0] if len(data_entry)>=1 else 0,  data_entry[1] if len(data_entry)>=2 else 0,  data_entry[2] if len(data_entry)>=3 else 0,  data_entry[3] if len(data_entry)>=4 else 0,  data_entry[4] if len(data_entry)>=5 else 0]) #Push data to an input device feature "Dummy_Sensor"         
+                if idx < total_rows and push_result != None:
+                    idx+=1
 
-    except Exception as e:
-        print(e)
-        if str(e).find('mac_addr not found:') != -1:
-            print('Reg_addr is not found. Try to re-register...')
-            DAN.device_registration_with_retry(ServerURL, Reg_addr)
-        else:
-            print('Connection failed due to unknow reasons.')
-            time.sleep(1)    
+            elif 'phase' in csvFile:
+                if idx == total_rows:
+                    DAN.push('rfidreader_phase_i', [1, 0, 0, 0, 0, 0])
+                    break
+                
+                push_result = True
+                data_entry = data_rows[idx]
+                print(idx)
+                print(data_entry)
+                push_result = push_result and DAN.push('rfidreader_phase_i', [len(data_entry), data_entry[0] if len(data_entry)>=1 else 0,  data_entry[1] if len(data_entry)>=2 else 0,  data_entry[2] if len(data_entry)>=3 else 0,  data_entry[3] if len(data_entry)>=4 else 0,  data_entry[4] if len(data_entry)>=5 else 0]) #Push data to an input device feature "Dummy_Sensor"         
+                if idx < total_rows and push_result != None:
+                    idx+=1
+        
+        
+           
 
-    time.sleep(0.2)
+        except Exception as e:
+            print(e)
+            if str(e).find('mac_addr not found:') != -1:
+                print('Reg_addr is not found. Try to re-register...')
+                DAN.device_registration_with_retry(ServerURL, Reg_addr)
+            else:
+                print('Connection failed due to unknow reasons.')
+                time.sleep(1)    
 
+        time.sleep(0.5)
+
+
+
+if __name__ == "__main__":
+    # csvFiles = csvFileScanner()
+    
+    # for f in csvFiles:
+        # iottalkPusher(f)
+
+    # iottalkPusher('distance_circle_0_50_0_1_1.csv')
+    # iottalkPusher('rssi_circle_0_50_0_1_1.csv')
+    iottalkPusher('distance_circle_0_50_0_3_1.csv')

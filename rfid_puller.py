@@ -102,7 +102,8 @@ def csvBuilder(filename, data_list):
         writer = csv.writer(csvfile, delimiter=' ')
 
         for item in data_list:
-            writer.writerow([item[1]])
+            entry_len = item[0]
+            writer.writerow(item[1:entry_len+1])
 
 
 if __name__ == "__main__":
