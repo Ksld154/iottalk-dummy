@@ -6,11 +6,12 @@ Reg_addr = 'CD1234D49' + '100'
 
 DAN.profile['dm_name']='rfidreader'
 DAN.profile['df_list']=['rfidreader_distance_i', 'rfidreader_phase_i', 'rfidreader_rssi_i', 'rfidreader_filename_i', 'rfidreader_distance_o', 'rfidreader_phase_o', 'rfidreader_rssi_o', 'rfidreader_filename_o']
+DAN.profile['d_name'] = str( random.randint(100,999 ) ) +'_pusher_'+ DAN.profile['dm_name']
 DAN.device_registration_with_retry(ServerURL, Reg_addr)
 
 
-CsvFileRoot = './GC/reader_data/ML_realdata/'
-CsvFilePath = 'gc_dis_ang_ori/distance_circle_0_50_0_1_1.csv'
+CsvFileRoot = './GC/reader_data/ML_realdata/gc_dis_ang_ori/'
+CsvFilePath = 'distance_circle_0_50_0_1_1.csv'
 distance = open(CsvFileRoot+CsvFilePath, newline='')
 d_rows = list(csv.reader(distance))
 d_cnter = 0
