@@ -125,3 +125,6 @@ if __name__ == "__main__":
     new_thread.start()
     t_list.append(new_thread)
     print(csvFileName)
+
+    for t in t_list:
+        t.join()
