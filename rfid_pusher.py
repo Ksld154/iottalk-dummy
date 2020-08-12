@@ -47,7 +47,6 @@ def iottalkPusher(csvFile):
     filename_pushed = False
     while True:
         try:
-
             if not filename_pushed:
                 push_res = DAN.push('rfidreader_filename_i', [csvFile])
                 if push_res:
@@ -57,39 +56,42 @@ def iottalkPusher(csvFile):
 
             if 'distance' in csvFile:
                 if idx == total_rows:
-                    DAN.push('rfidreader_distance_i', [1, 0, 0, 0, 0, 0])
+                    end_push_res = None
+                    while end_push_res is None:
+                        end_push_res = DAN.push('rfidreader_distance_i', [0, 0, 0, 0, 0, 0])  # noqa
                     break
 
                 push_result = True
                 data_entry = data_rows[idx]
-                print(idx)
-                print(data_entry)
+                print(idx, ": ", data_entry)
                 push_result = push_result and DAN.push('rfidreader_distance_i', [len(data_entry), data_entry[0] if len(data_entry) >= 1 else 0,  data_entry[1] if len(data_entry) >= 2 else 0,  data_entry[2] if len(data_entry) >= 3 else 0,  data_entry[3] if len(data_entry) >= 4 else 0,  data_entry[4] if len(data_entry) >= 5 else 0])  # noqa
                 if idx < total_rows and push_result is not None:
                     idx += 1
 
             elif 'rssi' in csvFile:
                 if idx == total_rows:
-                    DAN.push('rfidreader_rssi_i', [1, 0, 0, 0, 0, 0])
+                    end_push_res = None
+                    while end_push_res is None:
+                        end_push_res = DAN.push('rfidreader_distance_i', [0, 0, 0, 0, 0, 0])  # noqa
                     break
 
                 push_result = True
                 data_entry = data_rows[idx]
-                print(idx)
-                print(data_entry)
+                print(idx, ": ", data_entry)
                 push_result = push_result and DAN.push('rfidreader_rssi_i', [len(data_entry), data_entry[0] if len(data_entry) >= 1 else 0,  data_entry[1] if len(data_entry) >= 2 else 0,  data_entry[2] if len(data_entry) >= 3 else 0,  data_entry[3] if len(data_entry) >= 4 else 0,  data_entry[4] if len(data_entry) >= 5 else 0])  # noqa
                 if idx < total_rows and push_result is not None:
                     idx += 1
 
             elif 'phase' in csvFile:
                 if idx == total_rows:
-                    DAN.push('rfidreader_phase_i', [1, 0, 0, 0, 0, 0])
+                    end_push_res = None
+                    while end_push_res is None:
+                        end_push_res = DAN.push('rfidreader_distance_i', [0, 0, 0, 0, 0, 0])  # noqa
                     break
 
                 push_result = True
                 data_entry = data_rows[idx]
-                print(idx)
-                print(data_entry)
+                print(idx, ": ", data_entry)
                 push_result = push_result and DAN.push('rfidreader_phase_i', [len(data_entry), data_entry[0] if len(data_entry) >= 1 else 0,  data_entry[1] if len(data_entry) >= 2 else 0,  data_entry[2] if len(data_entry) >= 3 else 0,  data_entry[3] if len(data_entry) >= 4 else 0,  data_entry[4] if len(data_entry) >= 5 else 0])  # noqa
                 if idx < total_rows and push_result is not None:
                     idx += 1
@@ -104,14 +106,17 @@ def iottalkPusher(csvFile):
                 time.sleep(1)
 
         time.sleep(0.5)
+    time.sleep(0.5)
 
 
 if __name__ == "__main__":
-    # csvFiles = csvFileScanner()
+    csvFiles = csvFileScanner()
 
-    # for f in csvFiles:
-    #     iottalkPusher(f)
+    for f in csvFiles:
+        iottalkPusher(f)
 
     # iottalkPusher('distance_circle_0_50_0_1_1.csv')
     # iottalkPusher('rssi_circle_0_50_0_1_1.csv')
-    iottalkPusher('distance_circle_0_50_0_3_1.csv')
+    # iottalkPusher('distance_circle_0_50_0_3_1.csv')
+
+    DAN.push('rfidreader_filename_i', ["N/A"])

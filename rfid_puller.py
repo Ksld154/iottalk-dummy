@@ -44,18 +44,21 @@ def iottalkPuller():
                     print("File Name:")
                     print(csvFileName)
                     print("-----")
+                    if csvFileName == "N/A":
+                        break
 
             if 'distance' in csvFileName:
                 ODF_data = DAN.pull('rfidreader_distance_o')
                 if ODF_data is not None:
                     rfid_distance = ODF_data[0]
 
-                    prettyPrint('distance:', rfid_distance)
+                    # prettyPrint('distance:', rfid_distance)
                     data_list.append(rfid_distance)
                     idx += 1
-                    print(idx)
+                    # print(idx)
+                    print("[distance] ", idx, ": ", ODF_data[0])
 
-                    if rfid_distance == [1, 0, 0, 0, 0, 0]:
+                    if rfid_distance == [0, 0, 0, 0, 0, 0]:
                         break
 
             elif 'rssi' in csvFileName:
@@ -63,12 +66,13 @@ def iottalkPuller():
                 if ODF_data is not None:
                     rfid_rssi = ODF_data[0]
 
-                    prettyPrint('RSSI: ', rfid_rssi)
+                    # prettyPrint('RSSI: ', rfid_rssi)
                     data_list.append(rfid_rssi)
                     idx += 1
-                    print(idx)
+                    # print(idx)
+                    print("[rssi] ", idx, ": ", ODF_data[0])
 
-                    if rfid_rssi == [1, 0, 0, 0, 0, 0]:
+                    if rfid_rssi == [0, 0, 0, 0, 0, 0]:
                         break
 
             elif 'phase' in csvFileName:
@@ -76,12 +80,13 @@ def iottalkPuller():
                 if ODF_data is not None:
                     rfid_phase = ODF_data[0]
 
-                    prettyPrint('phase: ', rfid_phase)
+                    # prettyPrint('phase: ', rfid_phase)
                     data_list.append(rfid_phase)
                     idx += 1
-                    print(idx)
+                    # print(idx)
+                    print("[phase] ", idx, ": ", ODF_data[0])
 
-                    if rfid_phase == [1, 0, 0, 0, 0, 0]:
+                    if rfid_phase == [0, 0, 0, 0, 0, 0]:
                         break
 
         except Exception as e:
@@ -99,7 +104,7 @@ def iottalkPuller():
 def csvBuilder(output_folder, filename, data_list):
     filename = os.path.join(output_folder, filename)
     with open(filename, 'w', newline='') as csvfile:
-        writer = csv.writer(csvfile, delimiter=' ')
+        writer = csv.writer(csvfile)
 
         for item in data_list:
             entry_len = item[0]
@@ -115,16 +120,17 @@ if __name__ == "__main__":
 
     t_list = []
 
-    csvFileName, data_list = iottalkPuller()
-    if not csvFileName:
-        print("error!")
-        exit()
+    while True:
+        csvFileName, data_list = iottalkPuller()
+        if not csvFileName:
+            print("error!")
+            break
 
-    # output csv file
-    new_thread = threading.Thread(target=csvBuilder, args=(output_folder, csvFileName, data_list))  # noqa
-    new_thread.start()
-    t_list.append(new_thread)
-    print(csvFileName)
+        # output csv file
+        new_thread = threading.Thread(target=csvBuilder, args=(output_folder, csvFileName, data_list))  # noqa
+        new_thread.start()
+        t_list.append(new_thread)
+        print(csvFileName)
 
     for t in t_list:
         t.join()
