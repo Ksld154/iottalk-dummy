@@ -1,18 +1,20 @@
+import os
+import csv
+import random
+import threading
 from time import sleep
-import csv, os, random
-import DAN
 from datetime import datetime
+
+import DAN
 
 
 ServerURL = 'http://demo.iottalk.tw:9999'
 Reg_addr = 'CD8677D52' + '181'
 
 DAN.profile['dm_name'] = 'rfidreader'
-DAN.profile['df_list'] = ['rfidreader_distance_i', 'rfidreader_phase_i', 'rfidreader_rssi_i', 'rfidreader_filename_i', 'rfidreader_distance_o', 'rfidreader_phase_o', 'rfidreader_rssi_o', 'rfidreader_filename_o']
-DAN.profile['d_name'] = str( random.randint(100,999 ) ) + "_puller_"+ DAN.profile['dm_name']
+DAN.profile['df_list'] = ['rfidreader_distance_i', 'rfidreader_phase_i', 'rfidreader_rssi_i', 'rfidreader_filename_i', 'rfidreader_distance_o', 'rfidreader_phase_o', 'rfidreader_rssi_o', 'rfidreader_filename_o']  # noqa
+DAN.profile['d_name'] = str(random.randint(100, 999)) + "_puller_"+ DAN.profile['dm_name']  # noqa
 DAN.device_registration_with_retry(ServerURL, Reg_addr)
-
-
 
 
 def prettyPrint(title, item):
@@ -21,22 +23,19 @@ def prettyPrint(title, item):
     print(item)
     print("-----")
 
+
 def iottalkPuller():
-
-
     data_list = []
     idx = 0
 
     filename_pulled = False
     csvFileName = ''
 
-    
     while True:
         try:
-
-            if filename_pulled == False:
+            if not filename_pulled:
                 ODF_data = DAN.pull('rfidreader_filename_o')
-                if ODF_data != None: 
+                if ODF_data is not None:
                     print('file')
                     filename_pulled = True
                     csvFileName = ODF_data[0][0]
@@ -47,8 +46,8 @@ def iottalkPuller():
                     print("-----")
 
             if 'distance' in csvFileName:
-                ODF_data = DAN.pull('rfidreader_distance_o')   
-                if ODF_data != None:
+                ODF_data = DAN.pull('rfidreader_distance_o')
+                if ODF_data is not None:
                     rfid_distance = ODF_data[0]
 
                     prettyPrint('distance:', rfid_distance)
@@ -56,33 +55,33 @@ def iottalkPuller():
                     idx += 1
                     print(idx)
 
-                    if rfid_distance == [1,0,0,0,0,0]:
+                    if rfid_distance == [1, 0, 0, 0, 0, 0]:
                         break
 
             elif 'rssi' in csvFileName:
-                ODF_data = DAN.pull('rfidreader_rssi_o')   
-                if ODF_data != None:
+                ODF_data = DAN.pull('rfidreader_rssi_o')
+                if ODF_data is not None:
                     rfid_rssi = ODF_data[0]
-                    
+
                     prettyPrint('RSSI: ', rfid_rssi)
                     data_list.append(rfid_rssi)
                     idx += 1
                     print(idx)
 
-                    if rfid_rssi == [1,0,0,0,0,0]:
+                    if rfid_rssi == [1, 0, 0, 0, 0, 0]:
                         break
-            
+
             elif 'phase' in csvFileName:
-                ODF_data = DAN.pull('rfidreader_phase_o')   
-                if ODF_data != None:
+                ODF_data = DAN.pull('rfidreader_phase_o')
+                if ODF_data is not None:
                     rfid_phase = ODF_data[0]
-                    
+
                     prettyPrint('phase: ', rfid_phase)
                     data_list.append(rfid_phase)
                     idx += 1
                     print(idx)
 
-                    if rfid_phase == [1,0,0,0,0,0]:
+                    if rfid_phase == [1, 0, 0, 0, 0, 0]:
                         break
 
         except Exception as e:
@@ -90,14 +89,15 @@ def iottalkPuller():
             sleep(1)
 
         sleep(0.002)
-    
+
     if csvFileName == '' or len(data_list) == 0:
         return False, False
     else:
         return csvFileName, data_list
 
 
-def csvBuilder(filename, data_list):
+def csvBuilder(output_folder, filename, data_list):
+    filename = os.path.join(output_folder, filename)
     with open(filename, 'w', newline='') as csvfile:
         writer = csv.writer(csvfile, delimiter=' ')
 
@@ -107,20 +107,21 @@ def csvBuilder(filename, data_list):
 
 
 if __name__ == "__main__":
-    csvFileName, data_list = iottalkPuller()
-    if csvFileName == False:
-        print("error!")
-        exit()
-
-
-    # build output folder    
-    current_time = datetime.now().strftime('%Y-%m-%d-%H:%M:%S')
+    # build output folder
+    current_time = datetime.now().strftime('%Y-%m-%d-%H%M%S')
     output_folder = os.path.join(os.getcwd(), current_time)
     os.mkdir(output_folder)
     print(output_folder)
 
+    t_list = []
+
+    csvFileName, data_list = iottalkPuller()
+    if not csvFileName:
+        print("error!")
+        exit()
 
     # output csv file
-    csvFileName = os.path.join(output_folder, csvFileName)
-    csvBuilder(csvFileName, data_list)
+    new_thread = threading.Thread(target=csvBuilder, args=(output_folder, csvFileName, data_list))  # noqa
+    new_thread.start()
+    t_list.append(new_thread)
     print(csvFileName)
